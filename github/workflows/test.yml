@@ -1,0 +1,10 @@
+name: Calculatrice Test
+
+on: [push]
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Simple test
+        run: echo "Mise en place des tests pour la calculatrice"
