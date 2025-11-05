@@ -1,4 +1,3 @@
-# .github/workflows/deploy.yml
 name: Deploy Project
 
 on:
@@ -29,20 +28,20 @@ jobs:
 
       - name: Create remote dir
         run: |
-          sshpass -p "${{ secrets.PASSWORD }}" \
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.SERVER_HOSTNAME }} \
           "mkdir -p ~/node-app/dist"
 
       - name: Upload dist via SCP
         run: |
-          sshpass -p "${{ secrets.PASSWORD }}" \
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           scp -o StrictHostKeyChecking=no -r dist/* \
-          ${{ secrets.USERNAME }}@${{ secrets.SERVER_HOSTNAME }}:~/node-app/dist/
+          ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOSTNAME }}:~/node-app/dist/
 
       - name: Restart app (PM2) or serve static
         run: |
-          sshpass -p "${{ secrets.PASSWORD }}" \
-          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.SERVER_HOSTNAME }} "
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOSTNAME }} "
             set -e
             cd ~/node-app
             # si c'est une app Node, décommente :
