@@ -24,36 +24,33 @@ jobs:
           npm ci
           npm run build
 
-      # ⚠️ Copie des fichiers via SCP avec mot de passe
-      - name: Upload dist/ via SCP
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_HOSTNAME }}
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
-          port: 22
-          overwrite: true
-          source: "dist/*"
-          target: "~/node-app/dist"
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      # ⚙️ Commandes distantes via SSH avec mot de passe
-      - name: Restart app via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SERVER_HOSTNAME }}
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}   # <-- pas de 'key'
-          port: 22
-          script_stop: true
-          script: |
+      - name: Create remote dir
+        run: |
+          sshpass -p "${{ secrets.PASSWORD }}" \
+          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.SERVER_HOSTNAME }} \
+          "mkdir -p ~/node-app/dist"
+
+      - name: Upload dist via SCP
+        run: |
+          sshpass -p "${{ secrets.PASSWORD }}" \
+          scp -o StrictHostKeyChecking=no -r dist/* \
+          ${{ secrets.USERNAME }}@${{ secrets.SERVER_HOSTNAME }}:~/node-app/dist/
+
+      - name: Restart app (PM2) or serve static
+        run: |
+          sshpass -p "${{ secrets.PASSWORD }}" \
+          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.SERVER_HOSTNAME }} "
             set -e
-            mkdir -p ~/node-app
             cd ~/node-app
-            # si appli Node: install prod + PM2 (adapte si site statique)
-            npm ci --omit=dev || npm install --production
+            # si c'est une app Node, décommente :
+            # npm ci --omit=dev || npm install --production
             if command -v pm2 >/dev/null 2>&1; then
               pm2 describe node-app >/dev/null 2>&1 \
                 && pm2 reload node-app --update-env \
-                || pm2 start "npx serve -s dist -l 3000" --name node-app
+                || pm2 start 'npx serve -s dist -l 3000' --name node-app
               pm2 save || true
             fi
+          "
