@@ -1,16 +1,18 @@
 # .github/workflows/test.yml
-name: unit-tests
+name: ci-cd
 
 on:
   push:
     branches: [ main ]
-  pull_request:
   workflow_dispatch:
 
-jobs:
-  vitest:
-    runs-on: ubuntu-latest
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: true
 
+jobs:
+  test:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,11 +26,23 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      # Si tu veux forcer happy-dom par sécurité
-      - name: Run single test file
+      - name: Run single test file (Vitest)
         env:
           CI: 'true'
-          VITEST: '1'           # si ta config Vite désactive des plugins en mode test
-        run: |
-          npx vitest --environment happy-dom run components/__tests__/calculatrice.test.js
-          # ↑ adapte le chemin/casse exactement à ton repo
+          VITEST: '1'
+        run: npx vitest --environment happy-dom run components/__tests__/calculatrice.test.js
+
+  deploy:
+    needs: test
+    if: ${{ github.ref == 'refs/heads/main' && needs.test.result == 'success' }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: SSH deploy (git pull + build + restart)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOSTNAME }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT }}
+          
