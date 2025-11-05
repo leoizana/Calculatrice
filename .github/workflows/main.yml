@@ -1,0 +1,14 @@
+name: Calculatrice Test
+
+on: [push]
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run single test file
+        env:
+          CI: 'true'
+          VITEST: '1'           # si ta config Vite désactive des plugins en mode test
+        run: |
+          npx vitest --environment happy-dom run components/__tests__/calculatrice.test.js
