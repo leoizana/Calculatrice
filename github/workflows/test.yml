@@ -6,5 +6,9 @@ jobs:
   hello:
     runs-on: ubuntu-latest
     steps:
-      - name: Simple test
-        run: echo "Mise en place des tests pour la calculatrice"
+      - name: Run single test file
+        env:
+          CI: 'true'
+          VITEST: '1'           # si ta config Vite désactive des plugins en mode test
+        run: |
+          npx vitest --environment happy-dom run components/__tests__/calculatrice.test.js
