@@ -11,7 +11,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:unit": "vitest",
-    "lint": "eslint . --fix --cache"
+    "lint": "eslint . --fix --cache",
+    "test": "vitest"
   },
   "dependencies": {
     "axios": "^1.12.2",
@@ -25,9 +26,10 @@
     "eslint": "^9.37.0",
     "eslint-plugin-vue": "~10.5.0",
     "globals": "^16.4.0",
-    "jsdom": "^27.0.1",
+    "happy-dom": "^20.0.8",
+    "jest": "^30.2.0",
     "vite": "^7.1.11",
     "vite-plugin-vue-devtools": "^8.0.3",
-    "vitest": "^3.2.4"
+    "vitest": "^1.6.0"
   }
 }
