@@ -27,9 +27,11 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y sshpass
 
       - name: Upload dist via SCP
+        env:
+          SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
+          SERVER_HOSTNAME: ${{ secrets.SERVER_HOSTNAME }}
+          SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
         run: |
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
-          scp -o StrictHostKeyChecking=no -r dist/* \
-          $SERVER_USERNAME }}@$SERVER_HOSTNAME:/var/www/html
+          sshpass -p "$SERVER_PASSWORD" scp -o StrictHostKeyChecking=no -r dist/*  $SERVER_USERNAME@$SERVER_HOSTNAME:/var/www/html/
 
 
