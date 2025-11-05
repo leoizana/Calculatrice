@@ -26,30 +26,10 @@ jobs:
       - name: Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      - name: Create remote dir
-        run: |
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
-          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.SERVER_HOSTNAME }} \
-          "mkdir -p ~/node-app/dist"
-
       - name: Upload dist via SCP
         run: |
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
           scp -o StrictHostKeyChecking=no -r dist/* \
-          ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOSTNAME }}:~/node-app/dist/
+          $SERVER_USERNAME }}@$SERVER_HOSTNAME:/var/www/html
 
-      - name: Restart app (PM2) or serve static
-        run: |
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" \
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOSTNAME }} "
-            set -e
-            cd ~/node-app
-            # si c'est une app Node, décommente :
-            # npm ci --omit=dev || npm install --production
-            if command -v pm2 >/dev/null 2>&1; then
-              pm2 describe node-app >/dev/null 2>&1 \
-                && pm2 reload node-app --update-env \
-                || pm2 start 'npx serve -s dist -l 3000' --name node-app
-              pm2 save || true
-            fi
-          "
+
