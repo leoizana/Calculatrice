@@ -1,0 +1,41 @@
+# .github/workflows/deploy.yml
+name: Deploy Project
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install & Build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Deploy build folder to server
+        run: |
+          sshpass -p "${{ secrets.PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.SERVER_HOSTNAME }} "mkdir -p ~/node-app/dist"
+          sshpass -p "${{ secrets.PASSWORD }}" scp -o StrictHostKeyChecking=no -r dist/* ${{ secrets.USERNAME }}@${{ secrets.SERVER_HOSTNAME }}:~/node-app/dist
+
+      - name: Restart server process
+        run: |
+          sshpass -p "${{ secrets.PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.SERVER_HOSTNAME }} "
+            cd ~/node-app &&
+            npm install --production &&
+            pm2 reload all || pm2 start npm --name 'node-app' -- start
+          "
